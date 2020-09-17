@@ -43,15 +43,35 @@ const mainState = {
     );
 
     // Счёт
-    this.score = -1;
+    this.score = 0;
     this.scoreLabel = game.add.text(25, 25, "0", {
       font: "22px Tahoma",
       fill: "#fff",
+    });
+
+    // Личный рекорд
+    const record = localStorage.getItem("record");
+    this.recordLabel = game.add.text(25, 550, record || "0", {
+      font: "26px Tahoma",
+      fill: "#21",
     });
   },
   update: function () {
     // Начинать заново, если птичка вышла за границы экрана
     if (this.bird.y < 0 || this.bird.y > SCREEN_HEIGHT) this.restart();
+
+    const pipesGroup = this.pipes.children;
+    const groupLength = pipesGroup.length;
+
+    // Увеличивать счёт, если ближайший барьер дошел до края экрана
+    if (
+      groupLength >= 3 &&
+      Math.floor(pipesGroup[groupLength - 3].position.x) === 0
+    ) {
+      // Увеличивать счёт на 1
+      this.score += 1;
+      this.scoreLabel.text = this.score;
+    }
 
     // Коллизии для птички и барьеров
     game.physics.arcade.overlap(
@@ -64,6 +84,14 @@ const mainState = {
   },
 
   restart: function () {
+    const currentScore = this.score;
+    const record = localStorage.getItem("record");
+    if (!record) {
+      localStorage.setItem("record", "0");
+    } else if (Number(record) < currentScore) {
+      localStorage.setItem("record", String(currentScore));
+    }
+
     game.state.start("main");
   },
 
@@ -89,10 +117,6 @@ const mainState = {
     const randomY = getRandomInRange(200, 500);
     this.addPipe(SCREEN_WIDTH, Math.floor(randomY));
     this.addPipe(SCREEN_WIDTH, Math.floor(randomY) - (PIPE_HEIGHT + GAP));
-
-    // Увеличивать счёт на 1
-    this.score += 1;
-    this.scoreLabel.text = this.score;
   },
 };
 
